@@ -1,8 +1,9 @@
 default: benchmark.csv run_tests.exe regressions.out code.csv  
-LAB_CFLAGS= -I/home/jovyan/work/moneta/
 OPTIMIZE+=-march=x86-64
 include $(ARCHLAB_ROOT)/cse141.make
 $(BUILD)code.s: $(BUILD)opt_cnn.hpp
+
+MEMOPS?=100000000
 
 ifeq ($(DEVEL_MODE),yes)
 OUR_CMD_LINE_ARGS=--stat runtime=ARCHLAB_WALL_TIME 
@@ -18,6 +19,17 @@ code.csv: code.exe
 	pretty-csv $@
 	if [ -e gmon.out ]; then gprof $< > code.gprof; fi
 
+traceme_trace: traceme_trace.hd5f
+traceme_trace.hd5f: traceme.exe
+	mtrace --trace traceme --main aoeu --memops $(MEMOPS) -- ./traceme.exe
+
+traceme.exe: traceme.cpp
+	g++ $(USER_CFLAGS) $< -o $@
+
+code_trace: code_trace.hdf5
+code_trace.hdf5: code.exe
+	mtrace --trace code --main aoeu --memops $(MEMOPS)  --  ./code.exe --stats-file $@ $(FULL_CMD_LINE_ARGS)
+
 .PHONY: regressions.out
 regressions.out: ./run_tests.exe
 	-./run_tests.exe > $@ 
@@ -28,6 +40,7 @@ regressions.out: ./run_tests.exe
 # --scale, but that'd require a lot of carefuly checking.
 benchmark.csv: code.exe
 	rm -f gmon.out
+	                                              #--scale 4 --reps 200 --train-reps 1000
 	./code.exe --stats-file $@ --dataset cifar100 --scale 4 --reps 500 --train-reps 3000 $(OUR_CMD_LINE_ARGS)
 	pretty-csv $@
 	if [ -e gmon.out ]; then gprof $< > benchmark.gprof; fi

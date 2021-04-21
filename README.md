@@ -21,13 +21,13 @@ The optimizations portions of the grade is based on you successfully implemented
 The optimizations are broken into three tiers.  A total of 100 points are possible.
 
 * Tier 1: Applying loop re-ordering and tiling to
-   `fc_layer_t::activate()`. (75 points)
+   `fc_layer_t::activate()`. (20 points)
 
 * Tier 2: Applying loop re-ordering and tiling to
-   `fc_layer_t::calc_grads()`.  (10 points)
+   `fc_layer_t::calc_grads()`.  (20 points)
 
 * Tier 3: Applying additional optimizations to those two functions and
-   any others you wish. (15 points)
+   any others you wish. (60 points)
 
 For Tiers 1 and 2, your score is determined by whether you correctly implement the optimization specified.  They are all-or-nothing: You will receive full credit or zero credit depending on whether your implementation is correct.
 
@@ -45,9 +45,16 @@ For this lab, the leader board does not impact your grade.
 
 ## Example Code
 
-The `example` directory contains the image stabilization example from the lab lecture slides.  You shouldn't (and won't need to) use any of the code from that example for this lab.
+The `example` directory contains the image stabilization example from
+the lab lecture slides.  You shouldn't (and won't need to) use any of
+the code from that example for this lab.
+
+The code in `stabilize.cpp` also demonstrates how to use the Moneta
+functions (described below) to instrument the program to collect
+traces.
 
 ## Skills to Learn and Practice
+
 1. Interpreting performance counters.
 2. Applying loop reordering and predicting its effects.
 3. Applying loop tiling and predicting its effects.
@@ -65,20 +72,171 @@ The `example` directory contains the image stabilization example from the lab le
 
 4. Moneta - This is currently available on the pod that you obtain using launch-142. 
 
-## Moneta (TO BE ANNOUNCED IN A DAY OR TWO - IGNORE)
+## Moneta
 
-Moneta is the memory access visualizer tool built by  students of Non Volatile Systems Laboratory at UCSD.
-It is used to plot addresses (y-axis) vs access number (x-axis). Please first refer to the slides and discussion recording uploaded to the drive for the same. Below are some tips for running Moneta as well as instructions for launching it. You will be using moneta for plotting memory accesses as you optimize the code for this lab.  
+Moneta is the memory access visualizer tool built by students who took
+the first version of this class and who wanted a better way to
+understand how their programs were accessing memory.
+
+Moneta has two parts: The first is a *binary instrumenter* that
+modifies your executable to record a "trace" of the memory accesses it
+performs.  This is based on a very cool tool called
+[PIN](https://software.intel.com/content/www/us/en/develop/articles/pin-a-dynamic-binary-instrumentation-tool.html).
+This piece of instrumentation is called a "pin tool".
+
+The pin tool does two things:
+
+1.  It records memory accesses.
+
+2.  It simulates a simple cache hierarchy so it can label memory accesses as hits and misses.
+
+It records all this information is file called a trace.
+
+The second piece of Moneta is a trace viewer built using Jupyter
+Notebook using a collection of tools for visualizing large data sets.
+It lets you quickly load and explore a trace file.
+
+The visualizer displays a graph with relative address on the vertical
+access and memory access number on the horizontal axis.  This gives
+you a visual depiction of how the processor is accessing memory over
+time.
+
+Using Moneta has three steps: Adding some special functions to your
+code to tell Moneta what you want to trace, collecting a trace, and
+then visualizing it to learn something.
+
+### Instrumenting your Code to Collect a Moneta Trace
+
+Your program accesses a lot of memory -- the stack, the heap, all your
+data structures, a bunch of stuff from the standard libraries, etc.
+This can make it very hard to find what you are looking for when you
+are trying to optimize a particular function.
+
+In addition, if you recorded all the memory accesses a large program
+performed, it would take many, many GBs of storage and probably hours
+to process.
+
+To avoid these problems, Moneta provides a facility to:
+
+1.  Mark regions of memory with 'tags' so you can find them easily.
+2.  Control when Moneta starts collecting the trace.
+
+Both these mechanisms work by inserting calls to special functions
+that Moneta can identify.  You'll need to `#include<pin_tags.h>` to
+use these:
+
+The first function is
+
+```DUMP_START(const char* tag, const void* begin, const void* end, bool create_new)```
+
+It takes four parameters:
+
+1. `tag`: A string name to identify the trace
+2. `begin`: Identifies the memory address lower bound to trace (Array/Vector Example: &arr[0])
+3. `end`: Identifies the memory address upper bound to trace (Array/Vector Example: &arr[arr.size()-1])
+4. `create_new`:  If the `tag` name has not been used before, then `create_new` is ignored.If the tag name has been used before then, if `create_new` is `true`, then the tags will start having an index, `tag0`, `tag1`, ...     If `create_new` is false, then the tracing will add the information to the last tag of the same name, so the same tag.
+
+The second function:
+
+```DUMP_STOP(const char* tag)```
+
+stops collecting data for `tag`.
+
+The final function essentiall "turns on" Moneta:
+
+```START_TRACE()```
+
+Nothing will be recorded before it is executed.
+
+**Note:** Due to memory limitations, we can only reliably record 100 million
+  memory accesses. This is not that many.  You'll need to carefully
+  choose where and when to enable tracing.  A good practice is to call
+  `START_TRACE()` right before the code you want to trace.  The
+  program will stop running after it traces 100M memory operations.
+
+### Collecting Traces
+
+**You can only generate Moneta traces inside the class Docker image on `dsmlp` (or your own machine).  Moneta never runs in the cloud.**
+
+The simplest way to collect a trace is at the command line using the lab's `Makefile`:
+
+```
+make traceme_trace
+```
+
+will run run the code in `traceme.cpp` and generate a trace (try it!).  You'll have these files:
+
+```
+meta_data_traceme.txt
+tag_map_traceme.csv
+trace_traceme.hdf5
+```
+
+These are the "trace" of the program's execution.
+
+Likewise,
+
+```
+make code_trace
+```
+
+will run your code with the same command line arguments as `make
+code.csv`.  After you run it, you'll find three files:
+
+```
+meta_data_code.txt
+tag_map_code.csv
+trace_code.hdf5
+```
+
+### Launching Moneta
+
+Moneta runs inside Jupyter Notebook and you will access via a web browser.  To access Moneta, you must be connected to the campus VPN.
+
+After you log into dsmlp-login.ucsd.edu, and run `launch-142` as usual, you'll see something like this:
+
+```
+ucsdnvsl/cse141pp:sp21.150 is now active.
+
+Please connect to: http://dsmlp-login.ucsd.edu:19589/?token=a4da2a4c6d82c31d9525ba51b3c734fd2e748d3ea929eafa675b3166e4b10a
+
+Connected to sjswanson-32617; type 'exit' to terminate pod/processes and close Jupyter notebooks.
+/course/CSE141pp-Config ~
+
+```
+
+Visit the url provided after "Please connect to:".  This should open a window showing the contents of your login directory on `dsmlp-login` like this:
+
+![jupyter notebook](img/jupyter-start-screen.png)
+
+From there, you can navigate to the `Moneta.ipynb` in your lab repo.
+
+At the top is  box that says
+
+```
+%run /home/jovyan/work/moneta/moneta/main
+```
+
+Click on the text and press return.  That should drop you into Moneta:
+
+![Moneta](img/moneta-home-screen.png)
+
+At top left are some text fields **THAT YOU SHOULD IGNORE AND NOT
+USE**.  The only parts of the UI you'll need in this lab is the list
+of traces in the box on the right and the "Load Trace" button.
+
+In that box, you should see "traceme".  That's the trace you just built.  Click "Load Trace" to load it.
+
+Click on "Tags" (right hand side) and then click the magnifying glass
+next to "both".  It should zoom into the trace of `main` in
+`traceme.cpp`.  Take a moment to figure out which part of the program
+each of the lines you see represents.
+
+Check out the [video demo](https://youtu.be/s2lRgt2P_kU).
 
 ### Moneta Important Notes
 
-
-
-1. "pin_tags.h" is the header file containing the functions to tag memory traces for your program. It is already included in the starter code. 
-
-
 2. **We have included an example usage of MONETA's functions described below in the starter code.** You may need to make minimal changes to do the same for other data structures. 
-
 
 3. Once you are in the jupyter notebook (Moneta.ipynb), enter something random/gibberish in the "Function to start trace at" field if you are using the START_TRACE() function. This is because Moneta will begin tracing at either the location of START_TRACE() or the function in this field, whichever comes first. We want it to start tracing at START_TRACE() or it may max out the number of memory accesses before reaching this point. 
 
@@ -92,72 +250,11 @@ It is used to plot addresses (y-axis) vs access number (x-axis). Please first re
 
 
 
-### Moneta Functions
-
-The following three functions can be used to tag your code:
-
-```
-DUMP_START(const char* tag, const void* begin, const void* end, bool create_new)
-DUMP_STOP(const char* tag)
-START_TRACE()
-```
-
-
-**tag:** A string name to identify the trace
-
-**begin:** Identifies the memory address lower bound to trace (Array/Vector Example: &arr[0])
-
-**end:** Identifies the memory address upper bound to trace (Array/Vector Example: &arr[arr.size()-1])
-
-**create_new:**
-
-If the tag name has not been used before, then create_new is ignored.If the tag name has been used before then,If create_new is true, then the tags will start having an index, tag0, tag1, ...
-    If create_new is false, then the tracing will add the information to the last tag of the same name, so the same tag.
-
-
-**START_TRACE():** This function tells moneta where to start tracing. By default it is main().
-
-### Launching Moneta
-
-
-1. To launch Moneta: 'launch-142' and then 'cd /home/username/Moneta/moneta/'
-2. source /course/CSE141pp-Config/bin/moneta_cmd.sh
-3. Type 'moneta' - This should start Jupyter notebook as a background process.
-
-4. List the notebooks created by time. This will show a url that you will later copy into your browser. 
-```
-jupyter notebook list
-```
-5. Open two more tabs of terminals. In the first tab login to dsmlp (don't launch-142), do `kubectl get pods` (say it's sramaswa-1234)
-6. In the second tab, open the pod that's been created and do (don't launch-142 but login to dsmlp) `kubectl port-forward  <pod name> 0:8888`
-7. Step 6 returns an IP address.
-
-
-8. ssh and login into the new pod (maybe in the first of the two new terminals but exit from dsmlp) with `ssh -N -L 127.0.0.1:8888:127.0.0.1:<number_from_step6> <username>@dsmlp-login.ucsd.edu`. After entering your password it will not take you to login but you should leave it as it is. 
-
-9. Copy the url of the notebook and paste it into your browser. navigate to `/home/<username>/Moneta/moneta` and click on Moneta.ipynb.
-
-10. Run the first cell in the notebook and the screen should pop up. Provide the necessary arguments such as current working directory as your cloned repository path.
-
-```
-Working directory - /home/username/CSE141pp-Lab-Caches/
-
-Executable path - code.exe --dataset cifar100
-```
-
-11. Provide runtime arguments along with executable path to start generating the trace.
-To add any other runtime option, just add it as `"--newOption newValue" ` to the executable path option in the Moneta tool.
-
-
-12. Generate the trace by clicking on generate trace and use that trace to understand access patterns of different workloads.
-
-13. Load the generated trace and observe the access patterns for different areas of memory namely stack, heap or any of the tags that you have created.
-
-13. Please refer to the slides for more detailed information for Moneta.
-
 ## Tasks to Perform
 
 ### Inspect The Code
+
+Check the [video tour of the CNN library](https://youtu.be/5AfX9xaBsY0).
 
 There are three source files in the lab, but you'll only be editting one:
 

@@ -32,17 +32,20 @@ int main(int argc, char *argv[])
 					"Which version to run");
 	archlab_parse_cmd_line(&argc, argv);
 
+
 	for(auto & ds: dataset_s) {
 		std::cout << "Running " << ds << "\n";
 		
 		dataset_t *test = new dataset_t;
 	
 		if (ds == "mnist") {
-			*test = dataset_t::read(std::string(std::getenv("CANELA_ROOT")) + "/datasets/mnist/mnist-test.dataset", 64);
+			*test = dataset_t::read(std::string(std::getenv("CANELA_ROOT")) + "/datasets/mnist/mnist-test.dataset", 4);
 		} else if (ds == "emnist") {
-			*test = dataset_t::read(std::string(std::getenv("CANELA_ROOT")) + "/datasets/mnist/emnist-byclass-test.dataset", 64);
+			*test = dataset_t::read(std::string(std::getenv("CANELA_ROOT")) + "/datasets/mnist/emnist-byclass-test.dataset", 4);
+		} else if (ds == "cifar") {
+			*test = dataset_t::read(std::string(std::getenv("CANELA_ROOT")) + "/datasets/cifar/cifar100_train.dataset", 4);
 		} else if (ds == "imagenet") {
-			*test = dataset_t::read(std::string(std::getenv("CANELA_ROOT")) + "/datasets/imagenet/imagenet.dataset", 64);
+			*test = dataset_t::read(std::string(std::getenv("CANELA_ROOT")) + "/datasets/imagenet/imagenet.dataset", 4);
 		} else {
 			std::cerr << "unknown (Or incompatible) data set: " << ds << "\n";
 			exit(1);
