@@ -13,7 +13,8 @@ Your grade for this lab will be based on your completion of the data collection 
 | Part                       | value |
 |----------------------------|-------|
 | Optimizations              | 70%   |
-| Worksheet                  | 30%   |
+| Worksheet 1                | 15%   |
+| Worksheet 2                | 15%   |
     
 
 The optimizations portions of the grade is based on you successfully implemented a series of optimizations in Canela, our CNN library.
@@ -68,7 +69,7 @@ traces.
 
 2. The lab for the github classroom assignment for this lab.  Find the link on the course home page: https://github.com/CSE141pp/Home/.
 
-3. A PDF annotator/editor to fill out `worksheet.pdf`.  You'll submit this via *a separate assignment* in Gradescope.  We **will not** look at the version in your repo.
+3. A PDF annotator/editor to fill out `worksheet1.pdf` and `worksheet2.pdf`. dochub.com might be a good resource. You'll submit this via *a separate assignment* in Gradescope.  We **will not** look at the version in your repo.
 
 4. Moneta - This is currently available on the pod that you obtain using launch-142. 
 
@@ -191,7 +192,7 @@ trace_code.hdf5
 
 ### Launching Moneta
 
-Moneta runs inside Jupyter Notebook and you will access via a web browser.  To access Moneta, you must be connected to the campus VPN.
+Moneta runs inside Jupyter Notebook and you will access via a web browser.  **To access Moneta, you must be connected to the campus VPN**.
 
 After you log into dsmlp-login.ucsd.edu, and run `launch-142` as usual, you'll see something like this:
 
