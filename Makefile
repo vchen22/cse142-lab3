@@ -1,5 +1,6 @@
 default: benchmark.csv run_tests.exe regressions.out code.csv  
 OPTIMIZE+=-march=x86-64
+CLEANUP=trace_traceme.hdf5 trace_code.hdf5
 include $(ARCHLAB_ROOT)/cse141.make
 $(BUILD)code.s: $(BUILD)opt_cnn.hpp
 
@@ -19,8 +20,8 @@ code.csv: code.exe
 	pretty-csv $@
 	if [ -e gmon.out ]; then gprof $< > code.gprof; fi
 
-traceme_trace: traceme_trace.hd5f
-traceme_trace.hd5f: traceme.exe
+traceme_trace: traceme_trace.hdf5
+traceme_trace.hdf5: traceme.exe
 	mtrace --trace traceme --main aoeu --memops $(MEMOPS) -- ./traceme.exe
 
 traceme.exe: traceme.cpp
@@ -28,7 +29,7 @@ traceme.exe: traceme.cpp
 
 code_trace: code_trace.hdf5
 code_trace.hdf5: code.exe
-	mtrace --trace code --main aoeu --memops $(MEMOPS)  --  ./code.exe --stats-file $@ $(FULL_CMD_LINE_ARGS)
+	mtrace --trace code --main none --memops $(MEMOPS)  --  ./code.exe --stats-file $@ $(FULL_CMD_LINE_ARGS)
 
 .PHONY: regressions.out
 regressions.out: ./run_tests.exe
@@ -44,8 +45,4 @@ benchmark.csv: code.exe
 	./code.exe --stats-file $@ --dataset cifar100 --scale 4 --reps 500 --train-reps 3000 $(OUR_CMD_LINE_ARGS)
 	pretty-csv $@
 	if [ -e gmon.out ]; then gprof $< > benchmark.gprof; fi
-
-.PHONY: collect-trace
-collect-trace: code.exe
-	./code.exe --dataset cifar100  --scale 0 --reps 0 --train-reps 1
 

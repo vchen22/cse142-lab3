@@ -241,15 +241,9 @@ Check out the [video demo](https://youtu.be/s2lRgt2P_kU).
 
 3. Once you are in the jupyter notebook (Moneta.ipynb), enter something random/gibberish in the "Function to start trace at" field if you are using the START_TRACE() function. This is because Moneta will begin tracing at either the location of START_TRACE() or the function in this field, whichever comes first. We want it to start tracing at START_TRACE() or it may max out the number of memory accesses before reaching this point. 
 
-4. Remember to correcly type the working directory and executable name (code.exe) in the jupyter notebook. You can name the trace whatever you like. 
-
-
 5. To view the trace for a "tag", like "weights" in the example moneta code, de-select the "stack" tag and leave the tag for heap and "weights" selected. Then click the small magnifying glass for "weights". 
 
-
 6. You will need to pass the command line options in config.env to code.exe when running the jupyter notebook. By default code.exe will run a different dataset. For instance the "Executable Path" should be code.exe --dataset cifar100. This will make sure you are running on cifar100. 
-
-
 
 ## Tasks to Perform
 

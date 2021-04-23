@@ -8,14 +8,17 @@ std::fstream trace;
 
 #define MAX_OFFSET 8
 
+
+// Some macros to reduce repetition below.  The last argument is
+// 'true' so that we will get a new tag each time call DUMP_START.  In
+// our case, this will let us zoom in on one iteration of the outer
+// loop.
 #define DUMP_START_TENSOR(TAG, T)  DUMP_START( TAG, (void *) &(T.data[0]), (void *) &(T.data[T.element_count() - 1]), true)
 #define DUMP_STOP_TENSOR(TAG) DUMP_STOP( TAG)
 
 void do_stabilize_baseline(const tensor_t<double> & images, tensor_t<double> & output)
 {
 
-
-	//OPEN_TRACE("trace.out");
 	// The interesting part starts here.
 
 	// We iterate over each frame and compare it to the previous
@@ -24,9 +27,12 @@ void do_stabilize_baseline(const tensor_t<double> & images, tensor_t<double> & o
 	// Frames are identified by their index in the batch.  The
 	// index is the `b` dimension of the tensor, which always
 	// appears last when we access elements of the tensor.
-	START_TRACE();
+
+	START_TRACE();  // Turn in Moneta Tracing.  Nothing wil get recorded before this.
 	for (int this_frame = 1; this_frame < images.size.b; this_frame++) {
 		int previous_frame = this_frame - 1;
+
+		// Start tracing the images and the output separately.
 		DUMP_START_TENSOR("images", images);
 		DUMP_START_TENSOR("output", output);
 
@@ -62,8 +68,13 @@ void do_stabilize_baseline(const tensor_t<double> & images, tensor_t<double> & o
 				}
 			}
 		}
+		// Close the tags.  This is not strictly necessary,
+		// but if you don't the first tag will have all the
+		// iterations.  The second tag will have all but the
+		// first, etc. 
 		DUMP_STOP_TENSOR("images");
-		DUMP_STOP_TENSOR("output");	}
+		DUMP_STOP_TENSOR("output");
+	}
 
 }
 
