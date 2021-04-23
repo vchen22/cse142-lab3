@@ -4,7 +4,7 @@ CLEANUP=trace_traceme.hdf5 trace_code.hdf5
 include $(ARCHLAB_ROOT)/cse141.make
 $(BUILD)code.s: $(BUILD)opt_cnn.hpp
 
-MEMOPS?=100000000
+MEMOPS?=10000000
 
 ifeq ($(DEVEL_MODE),yes)
 OUR_CMD_LINE_ARGS=--stat runtime=ARCHLAB_WALL_TIME 
