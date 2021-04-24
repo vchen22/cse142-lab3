@@ -120,40 +120,44 @@ to process.
 To avoid these problems, Moneta provides a facility to:
 
 1.  Mark regions of memory with 'tags' so you can find them easily.
-2.  Control when Moneta starts collecting the trace.
+2.  Turn tracing on and off.
 
 Both these mechanisms work by inserting calls to special functions
 that Moneta can identify.  You'll need to `#include<pin_tags.h>` to
 use these:
 
-The first function is
+* `START_TRACE()` -- Turns on tracing. If you don't call `START_TRACE`
+  _nothing_ will be recorded.
+* `STOP_TRACE()' -- Turns off tracing.  Nothing will be recorded until you call `START_TRACE` again.
+* `DUMP_START(const char* tag, const void* begin, const void* end, bool create_new)` -- Opens a _tag_ which will label accesses between `begin` and `end` with the `tag`.  All operations in that range until `DUMP_STOP` is called with the same tag will be part of the tag.
 
-```DUMP_START(const char* tag, const void* begin, const void* end, bool create_new)```
-
-It takes four parameters:
+`DUMP_START` takes four parameters:
 
 1. `tag`: A string name to identify the trace
 2. `begin`: Identifies the memory address lower bound to trace (Array/Vector Example: &arr[0])
 3. `end`: Identifies the memory address upper bound to trace (Array/Vector Example: &arr[arr.size()-1])
 4. `create_new`:  If the `tag` name has not been used before, then `create_new` is ignored.If the tag name has been used before then, if `create_new` is `true`, then the tags will start having an index, `tag0`, `tag1`, ...     If `create_new` is false, then the tracing will add the information to the last tag of the same name, so the same tag.
 
-The second function:
+* `DUMP_STOP(const char* tag)` -- Closes a tag.
 
-```DUMP_STOP(const char* tag)```
+* `DUMP_START_ALL(const char * tag)` -- A wrapper around `DUMP_START`
+  that create a tag that track _all_ memory accesses.  This is useful
+  for tagging all the memory accesses that occur during a period of
+  time.  You can close the tag with `DUMP_STOP`.  For instance, you
+  can use this to tag all the memory operations that occur in a
+  function.
 
-stops collecting data for `tag`.
+**Note:** Once you create a tag, you can't create a new tag with the
+  same name that covers a different address range.  If you do, you'll
+  get an error like "Error: Tag redefined - Tag can't map to different
+  ranges".
 
-The final function essentiall "turns on" Moneta:
-
-```START_TRACE()```
-
-Nothing will be recorded before it is executed.
-
-**Note:** Due to memory limitations, we can only reliably record 100 million
-  memory accesses. This is not that many.  You'll need to carefully
-  choose where and when to enable tracing.  A good practice is to call
-  `START_TRACE()` right before the code you want to trace.  The
-  program will stop running after it traces 100M memory operations.
+**Note:** Due to memory limitations on `dsmlp`, we can only reliably
+  record 10 million memory accesses. This is not that many.  You'll
+  need to carefully choose where and when to enable tracing.  A good
+  practice is to call `START_TRACE()` right before the code you want
+  to trace and `STOP_TRACE()` when you're done.  The program will stop
+  running after it traces 10M memory operations.
 
 ### Collecting Traces
 
