@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 		int clock_rate = mhz_s[0];
 		run_canary(clock_rate);
 		model_t * model = build_model(*train);
-		int batch_size = 2;
+		int batch_size = 1;
 		model->change_batch_size(batch_size);
 
 
@@ -383,7 +383,7 @@ int tag_run(ArchLabTimer & timer,
 
 void time_activate(layer_t * l, int scale, const std::string& full_name, int layer_index) {
 	ArchLabTimer timer; // create it.
-	int reps = tag_run(timer, l->kind_str(), full_name, layer_index, "activate", scale);
+	int reps =		tag_run(timer, l->kind_str(), full_name, layer_index, "activate", scale);
 	tensor_t<double> _in(l->in.size);
 	timer.go();
 	for (int i = 0; i < reps; i++)
@@ -392,7 +392,8 @@ void time_activate(layer_t * l, int scale, const std::string& full_name, int lay
 
 void time_calc_grads(layer_t * l, int scale, const std::string& full_name, int layer_index) {
 	ArchLabTimer timer; // create it.
-	int reps = tag_run(timer, l->kind_str(), full_name, layer_index, "calc_grads", scale);
+	int reps =
+		tag_run(timer, l->kind_str(), full_name, layer_index, "calc_grads", scale);
 	tensor_t<double> _out(l->out.size);
 	timer.go();
 	for (int i = 0; i < reps; i++)
@@ -401,7 +402,8 @@ void time_calc_grads(layer_t * l, int scale, const std::string& full_name, int l
 
 void time_fix_weights(layer_t * l, int scale, const std::string& full_name, int layer_index) {
 	ArchLabTimer timer; // create it.
-	int reps = tag_run(timer, l->kind_str(), full_name, layer_index, "fix_weights", scale);
+	int reps =
+		tag_run(timer, l->kind_str(), full_name, layer_index, "fix_weights", scale);
 	timer.go();
 	for (int i = 0; i < reps; i++)
 		l->fix_weights();
