@@ -311,6 +311,10 @@ Your executable takes a few useful command line options we haven't discussed:
   
 * `--reps` how many times to run the individual functions for Tier 1 and Tier  2.
 
+* `--function` let's you specify which functions to run.  It can take any combination of `calc_grads`, `activate`, `fix_weights`, `train_model`, and `all`.
+
+* `--test-layer` Takes one or more numbers that corresponding to the layers of the model to test.  For this lab, there's just one layer so the only value that makes sense is 0 (which is also the default).
+
 ### Read the Source
 
 You need to get acquainted with the code you'll be optimizing.  The slides from the lab lecture are an important resource here, especially for memory layout of `tensor_t` and how the functions in `fc_layer_t` work.
