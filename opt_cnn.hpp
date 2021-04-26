@@ -32,6 +32,35 @@
  *
  */
 
+ /* Here is an example usage of DUMP_START(), DUMP_STOP() and START_TRACE()
+ * 	START_TRACE(); //This will tell moneta where to start tracing
+ *
+ *      // This will help moneta know what to trace
+ *      // Here all the elements in weights are traced. data is an internal data structure holding all data accross x/y/z/b
+ * 	DUMP_START("weights", (void *) &(weights.data[0]), (void *) &(weights.data[weights.element_count() - 1]), true);
+ *      
+ *	//ADD DUMP_START() CALLS HERE FOR OTHER DATA STRUCTURES IF NEEDED
+ *
+ * 	//the nested for loop in the activate function that you will copy into the opt_fc_layer_t class
+ *      for ( int b = 0; b < in.size.y; b++ ) {
+ *      	for ( int i = 0; i < in.size.x; i++ ) {
+ *              	for ( int n = 0; n < out.size.x; n++ ) {
+ *                      	double in_val = in(i, b, 0);
+ *                              double weight_val = weights( i, n, 0 );
+ *                              double mul_val = in_val * weight_val;
+ *                              double acc_val = activator_input(n, 0, 0, b) + mul_val;
+ *                              activator_input(n, 0, 0, b) = acc_val;
+ *                       }
+ *               }
+ *      }
+ *
+ *      //this will help moneta know when to stop stop tracing the weights array
+ *	DUMP_STOP("weights");
+ *
+ *	//REMEMBER TO DUMP_STOP() IF YOU ARE TRACING OTHER ARRAYS
+ *
+ */
+
 
 
 // This class replaces its parent classes in the implementation of the learning
@@ -97,21 +126,21 @@ public:
 				// 	}
 				// }
 
-				#define TILE_SIZE 16
+				// #define TILE_SIZE 16
 
-				for ( int nn = 0; nn < out.size.x; nn+=TILE_SIZE) {
-					for ( int b = 0; b < in.size.y; b++ ) {
-							for ( int n = nn; n < nn + TILE_SIZE && n < out.size.x; n++ ) {
-									for ( int i = 0; i < in.size.x; i++ ) {
-											double in_val = in(i, b, 0);
-											double weight_val = weights( i, n, 0 );
-											double mul_val = in_val * weight_val;
-											double acc_val = activator_input(n, 0, 0, b) + mul_val;
-											activator_input(n, 0, 0, b) = acc_val;
-									}
-							}
-					}
-				}
+				// for ( int nn = 0; nn < out.size.x; nn+=TILE_SIZE) {
+				// 	for ( int b = 0; b < in.size.y; b++ ) {
+				// 			for ( int n = nn; n < nn + TILE_SIZE && n < out.size.x; n++ ) {
+				// 					for ( int i = 0; i < in.size.x; i++ ) {
+				// 							double in_val = in(i, b, 0);
+				// 							double weight_val = weights( i, n, 0 );
+				// 							double mul_val = in_val * weight_val;
+				// 							double acc_val = activator_input(n, 0, 0, b) + mul_val;
+				// 							activator_input(n, 0, 0, b) = acc_val;
+				// 					}
+				// 			}
+				// 	}
+				// }
 				
 
                 // for ( int b = 0; b < in.size.y; b++ ) {
@@ -126,17 +155,23 @@ public:
                 //         }
                 // }
 
-                // for ( int b = 0; b < in.size.y; b++ ) {
-                //         for ( int i = 0; i < in.size.x; i++ ) {
-                //                 for ( int n = 0; n < out.size.x; n++ ) {
-                //                         double in_val = in(i, b, 0);
-                //                         double weight_val = weights( i, n, 0 );
-                //                         double mul_val = in_val * weight_val;
-                //                         double acc_val = activator_input(n, 0, 0, b) + mul_val;
-                //                         activator_input(n, 0, 0, b) = acc_val;
-                //                 }
-                //         }
-                // }
+				START_TRACE(); //This will tell moneta where to start tracing
+
+				DUMP_START("weights", (void *) &(weights.data[0]), (void *) &(weights.data[weights.element_count() - 1]), true);
+
+                for ( int b = 0; b < in.size.y; b++ ) {
+                        for ( int i = 0; i < in.size.x; i++ ) {
+                                for ( int n = 0; n < out.size.x; n++ ) {
+                                        double in_val = in(i, b, 0);
+                                        double weight_val = weights( i, n, 0 );
+                                        double mul_val = in_val * weight_val;
+                                        double acc_val = activator_input(n, 0, 0, b) + mul_val;
+                                        activator_input(n, 0, 0, b) = acc_val;
+                                }
+                        }
+                }
+
+				DUMP_STOP("weights");
 
                 // finally, apply the activator function.
                 for ( unsigned int n = 0; n < activator_input.element_count(); n++ ) {
