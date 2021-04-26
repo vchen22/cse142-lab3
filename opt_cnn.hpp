@@ -97,7 +97,7 @@ public:
 				// 	}
 				// }
 
-				#define TILE_SIZE 1
+				#define TILE_SIZE 2
 
 				for ( int nn = 0; nn < out.size.x; nn+=TILE_SIZE) {
 					for ( int b = 0; b < in.size.y; b++ ) {
