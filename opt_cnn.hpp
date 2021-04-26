@@ -126,21 +126,27 @@ public:
 				// 	}
 				// }
 
-				// #define TILE_SIZE 16
+                                START_TRACE(); //This will tell moneta where to start tracing
 
-				// for ( int nn = 0; nn < out.size.x; nn+=TILE_SIZE) {
-				// 	for ( int b = 0; b < in.size.y; b++ ) {
-				// 			for ( int n = nn; n < nn + TILE_SIZE && n < out.size.x; n++ ) {
-				// 					for ( int i = 0; i < in.size.x; i++ ) {
-				// 							double in_val = in(i, b, 0);
-				// 							double weight_val = weights( i, n, 0 );
-				// 							double mul_val = in_val * weight_val;
-				// 							double acc_val = activator_input(n, 0, 0, b) + mul_val;
-				// 							activator_input(n, 0, 0, b) = acc_val;
-				// 					}
-				// 			}
-				// 	}
-				// }
+                                DUMP_START("weights", (void *) &(weights.data[0]), (void *) &(weights.data[weights.element_count() - 1]), true);
+
+				#define TILE_SIZE 16
+
+				for ( int nn = 0; nn < out.size.x; nn+=TILE_SIZE) {
+					for ( int b = 0; b < in.size.y; b++ ) {
+							for ( int n = nn; n < nn + TILE_SIZE && n < out.size.x; n++ ) {
+									for ( int i = 0; i < in.size.x; i++ ) {
+											double in_val = in(i, b, 0);
+											double weight_val = weights( i, n, 0 );
+											double mul_val = in_val * weight_val;
+											double acc_val = activator_input(n, 0, 0, b) + mul_val;
+											activator_input(n, 0, 0, b) = acc_val;
+									}
+							}
+					}
+				}
+
+                                DUMP_STOP("weights");
 				
 
                 // for ( int b = 0; b < in.size.y; b++ ) {
@@ -155,23 +161,23 @@ public:
                 //         }
                 // }
 
-				START_TRACE(); //This will tell moneta where to start tracing
+		// 		START_TRACE(); //This will tell moneta where to start tracing
 
-				DUMP_START("weights", (void *) &(weights.data[0]), (void *) &(weights.data[weights.element_count() - 1]), true);
+		// 		DUMP_START("weights", (void *) &(weights.data[0]), (void *) &(weights.data[weights.element_count() - 1]), true);
 
-                for ( int b = 0; b < in.size.y; b++ ) {
-                        for ( int i = 0; i < in.size.x; i++ ) {
-                                for ( int n = 0; n < out.size.x; n++ ) {
-                                        double in_val = in(i, b, 0);
-                                        double weight_val = weights( i, n, 0 );
-                                        double mul_val = in_val * weight_val;
-                                        double acc_val = activator_input(n, 0, 0, b) + mul_val;
-                                        activator_input(n, 0, 0, b) = acc_val;
-                                }
-                        }
-                }
+                // for ( int b = 0; b < in.size.y; b++ ) {
+                //         for ( int n = 0; n < out.size.x; n++ ) {
+                //                 for ( int i = 0; i < in.size.x; i++ ) {
+                //                         double in_val = in(i, b, 0);
+                //                         double weight_val = weights( i, n, 0 );
+                //                         double mul_val = in_val * weight_val;
+                //                         double acc_val = activator_input(n, 0, 0, b) + mul_val;
+                //                         activator_input(n, 0, 0, b) = acc_val;
+                //                 }
+                //         }
+                // }
 
-				DUMP_STOP("weights");
+		// 		DUMP_STOP("weights");
 
                 // finally, apply the activator function.
                 for ( unsigned int n = 0; n < activator_input.element_count(); n++ ) {
