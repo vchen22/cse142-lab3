@@ -44,6 +44,10 @@
 // to make them faster.
 //
 // The source code Canela is in /course/CSE141pp-SimpleCNN/CNN
+
+#define DUMP_TENSOR_START(TAG, T) DUMP_START(TAG, (void *) &((T).data[0]), (void *) &((T).data[(T).element_count() - 1]), true)
+#define DUMP_TENSOR_STOP(TAG) DUMP_STOP(TAG)
+
 class opt_fc_layer_t : public fc_layer_t
 {
 public:
