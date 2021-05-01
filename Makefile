@@ -12,6 +12,15 @@ else
 OUR_CMD_LINE_ARGS=--stat-set L2.cfg
 endif
 
+ifeq ($(COMPILER),gcc-9)
+CC=gcc-9
+CXX=g++-9
+endif
+ifeq ($(COMPILER),gcc-8)
+CC=gcc-8
+CXX=g++-8
+endif
+
 FULL_CMD_LINE_ARGS=$(LAB_COMMAND_LINE_ARGS) $(CMD_LINE_ARGS)
 
 code.csv: code.exe
