@@ -96,6 +96,8 @@ public:
 		// 		}
 		// 	}
 		// }
+
+                #define TILE_SIZE 4
                 for(int nn = 0; nn < out.size.x; nn+=TILE_SIZE){
 			for ( int b = 0; b < in.size.y; b++ ) {
 				for ( int n = nn; n < nn + TILE_SIZE && n < out.size.x; n++ ) {
