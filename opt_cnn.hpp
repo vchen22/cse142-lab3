@@ -288,18 +288,36 @@ public:
                 in.size.y = 1;
                 in.size.z = 1;
 
-                for ( int b = 0; b < out.size.b; b++ ) {
-                //{ int b = 1;
-                        for ( int n = 0; n < weights.size.y; n++ ) {
-                                for ( int i = 0; i < weights.size.x; i++ ) {
-                                        double& w = weights( i, n, 0 );
-                                        double m = (act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM);
-                                        double g_weight = w - (LEARNING_RATE * m * in(i, 0, 0, b) + LEARNING_RATE * WEIGHT_DECAY * w);
-                                        w = g_weight;
+                // for ( int b = 0; b < out.size.b; b++ ) {
+                // //{ int b = 1;
+                //         for ( int n = 0; n < weights.size.y; n++ ) {
+                //                 for ( int i = 0; i < weights.size.x; i++ ) {
+                //                         double& w = weights( i, n, 0 );
+                //                         double m = (act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM);
+                //                         double g_weight = w - (LEARNING_RATE * m * in(i, 0, 0, b) + LEARNING_RATE * WEIGHT_DECAY * w);
+                //                         w = g_weight;
+                //                 }
+                //                 old_act_grad(n, 0, 0, b) = act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM;
+                //         }
+                // }
+
+                #define TILE_SIZE 4
+
+                for ( int nn = 0; nn < weights.size.x; nn+=TILE_SIZE) {
+                        for ( int b = 0; b < out.size.b; b++ ) {
+                        //{ int b = 1;
+                                for ( int n = nn; n < nn + TILE_SIZE && n < weights.size.y; n++ ) {
+                                        for ( int i = 0; i < weights.size.x; i++ ) {
+                                                double& w = weights( i, n, 0 );
+                                                double m = (act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM);
+                                                double g_weight = w - (LEARNING_RATE * m * in(i, 0, 0, b) + LEARNING_RATE * WEIGHT_DECAY * w);
+                                                w = g_weight;
+                                        }
+                                        old_act_grad(n, 0, 0, b) = act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM;
                                 }
-                                old_act_grad(n, 0, 0, b) = act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM;
                         }
                 }
+
                 in.size = old_in_size;
         }
 			
