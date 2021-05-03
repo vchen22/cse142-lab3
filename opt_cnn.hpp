@@ -214,8 +214,9 @@ public:
 
                 for ( int b = 0; b < out.size.b; b++ ) {
                         for ( int n = 0; n < out.size.x; n++ ) {
+                                double calc_act_grad = act_grad(n,0,0,b);
                                 for ( int i = 0; i < grads_out.size.x; i++ ) {
-                                        grads_out(i, 0, 0, b) += act_grad(n, 0, 0, b) * weights( i, n, 0);
+                                        grads_out(i, 0, 0, b) += calc_act_grad * weights( i, n, 0);
                                 }
                         }
                 }
@@ -232,6 +233,74 @@ public:
 		// }
 
                 grads_out.size = in.size;
+        }
+
+        void fix_weights() {
+                // Here, we are updating the weights.  The amount we
+                // change the input primarily depends on the gradient
+                // and the input value.  We use gradient decent, which
+                // means we follow the gradient downward to minimize
+                // error.
+                //
+                // Recall that during back propagation, the input the
+                // layer is the error and the derivatives are with
+                // respect to the weights.  This means that the
+                // gradient points in the direction we should move the
+                // weights to reduce the error.
+                //
+                // We calculated the gradientt in calc_grads(), and
+                // proportional to the error (i.e., grad_next_layer)
+                // and the derivative of the activator function.  This
+                // means that larger errors or steeper slopes causes
+                // bigger changes in the weights.
+                //
+                // The basic update rule is
+                //
+                // w_new = w - gradient * input
+                //
+                // This update rule is too aggressive, however, so we
+                // add a learning rate, u:
+                //
+                // w_new = w - gradient * input * u
+                //
+                // There is a also problem that can arise when the
+                // gradient get small: progress toward the minimum can
+                // slow.  So we also have a "momentum" term, M:
+                //
+                // t = gradient + old_gradient*momentum
+                // w_new = w - u * input * t
+                //
+                // Finally, to smooth out the changes in gradient, we
+                // add a 'decay' term governed by a decay, D:
+                //
+                // t = gradient + old_gradient*momentum
+                // w_new = w - (u * input * t + D * w)
+                //
+                // All this complication lives in update_weight()
+                // 
+                // Since the above needs old_gradient, the gradient
+                // tensor has the old and new gradient values in it.
+                // update_gradient() updates the old gradient with the
+                // new value.
+
+                tdsize old_in_size = in.size;
+                in.size.x = in.size.x * in.size.y * in.size.z;
+                in.size.y = 1;
+                in.size.z = 1;
+
+                for ( int b = 0; b < out.size.b; b++ ) {
+                //{ int b = 1;
+                        for ( int n = 0; n < weights.size.y; n++ ) {
+                                for ( int i = 0; i < weights.size.x; i++ ) {
+                                        double& w = weights( i, n, 0 );
+                                        double m = (act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM);
+                                        double g_weight = w - (LEARNING_RATE * m * in(i, 0, 0, b) + LEARNING_RATE * WEIGHT_DECAY * w);
+                                        w = g_weight;
+                                }
+                                old_act_grad(n, 0, 0, b) = act_grad(n, 0, 0, b) + old_act_grad(n, 0, 0, b) * MOMENTUM;
+                        }
+                }
+                in.size = old_in_size;
         }
 			
 };
