@@ -192,9 +192,17 @@ public:
                 // contribution is proportional to the
                 // weights.
 
+                // for ( int b = 0; b < out.size.b; b++ ) {
+                //         for ( int i = 0; i < grads_out.size.x; i++ ) {
+                //                 for ( int n = 0; n < out.size.x; n++ ) {
+                //                         grads_out(i, 0, 0, b) += act_grad(n, 0, 0, b) * weights( i, n, 0);
+                //                 }
+                //         }
+                // }
+
                 for ( int b = 0; b < out.size.b; b++ ) {
-                        for ( int i = 0; i < grads_out.size.x; i++ ) {
-                                for ( int n = 0; n < out.size.x; n++ ) {
+                        for ( int n = 0; n < out.size.x; n++ ) {
+                                for ( int i = 0; i < grads_out.size.x; i++ ) {
                                         grads_out(i, 0, 0, b) += act_grad(n, 0, 0, b) * weights( i, n, 0);
                                 }
                         }
