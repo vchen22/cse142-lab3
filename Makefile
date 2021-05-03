@@ -4,12 +4,21 @@ CLEANUP=trace_traceme.hdf5 trace_code.hdf5
 include $(ARCHLAB_ROOT)/cse141.make
 $(BUILD)code.s: $(BUILD)opt_cnn.hpp
 
-MEMOPS?=5000000
+MEMOPS?=10000000
 
 ifeq ($(DEVEL_MODE),yes)
 OUR_CMD_LINE_ARGS=--stat runtime=ARCHLAB_WALL_TIME 
 else
 OUR_CMD_LINE_ARGS=--stat-set L2.cfg
+endif
+
+ifeq ($(COMPILER),gcc-9)
+CC=gcc-9
+CXX=g++-9
+endif
+ifeq ($(COMPILER),gcc-8)
+CC=gcc-8
+CXX=g++-8
 endif
 
 FULL_CMD_LINE_ARGS=$(LAB_COMMAND_LINE_ARGS) $(CMD_LINE_ARGS)

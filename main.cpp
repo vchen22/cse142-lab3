@@ -156,7 +156,9 @@ int main(int argc, char *argv[])
 		theDataCollector->register_tag("test_inputs_count", test->test_cases.size());
 
 		int clock_rate = mhz_s[0];
-		run_canary(clock_rate);
+		if (scale_factor > 0) {
+			run_canary(clock_rate);
+		}
 		model_t * model = build_model(*train);
 		int batch_size = 1;
 		model->change_batch_size(batch_size);
@@ -373,6 +375,9 @@ int tag_run(ArchLabTimer & timer,
 	//std::cout << "Timing " << full_name << "\n";
 	//std::cout << "map: " << "<" << layer_index << ", " << function << "> == " <<  rep_map[rep_map_key(layer_index, function)] << "\n";
 	int reps = std::min(ceil((scale + 0.0) / rep_map[rep_map_key(layer_index, function)]), 10000.0);
+	if (reps < 1) {
+		reps = 1;
+	}
 	timer.attr("reps", reps);
 	//std::cout << "reps: " << reps << "\n";
 	
