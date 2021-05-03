@@ -200,13 +200,28 @@ public:
                 //         }
                 // }
 
-                for ( int b = 0; b < out.size.b; b++ ) {
-                        for ( int n = 0; n < out.size.x; n++ ) {
-                                for ( int i = 0; i < grads_out.size.x; i++ ) {
-                                        grads_out(i, 0, 0, b) += act_grad(n, 0, 0, b) * weights( i, n, 0);
+                // for ( int b = 0; b < out.size.b; b++ ) {
+                //         for ( int n = 0; n < out.size.x; n++ ) {
+                //                 for ( int i = 0; i < grads_out.size.x; i++ ) {
+                //                         grads_out(i, 0, 0, b) += act_grad(n, 0, 0, b) * weights( i, n, 0);
+                //                 }
+                //         }
+                // }
+
+                #define TILE_SIZE 4
+                for(int nn = 0; nn < out.size.x; nn+=TILE_SIZE){
+			for ( int b = 0; b < out.size.b; b++ ) {
+				for ( int n = nn; n < nn + TILE_SIZE && n < out.size.x; n++ ) {
+                                        for ( int i = 0; i < grads_out.size.x; i++ ) {
+                                                double in_val = in(i, b, 0);
+                                                double weight_val = weights( i, n, 0 );
+                                                double mul_val = in_val * weight_val;
+                                                double acc_val = activator_input(n, 0, 0, b) + mul_val;
+                                                activator_input(n, 0, 0, b) = acc_val;
+                                        }
                                 }
                         }
-                }
+		}
 
                 grads_out.size = in.size;
         }
