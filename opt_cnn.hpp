@@ -106,6 +106,87 @@ public:
 		in.size = old_size;
 		out.size = old_out_size;
 	}
+
+
+        void calc_grads( const tensor_t<double>& grad_next_layer ) {
+
+                memset( grads_out.data, 0, grads_out.size.x * grads_out.size.y * grads_out.size.z * sizeof( double ) );
+
+                // Using the notation from activate():
+                //
+                // We do two things in the loop below: 1) compute the
+                // gradient (grad.grad). 2) propagate the error to the
+                // previous error.
+
+                // The gradient:
+
+                // We are calculating the derivative of F with respect
+                // to w.  The derivative, F', is a vector, so it's a
+                // gradient (stored in `gradients`)
+                //
+                // F(x, w)  = L(f(x,w)) // from above
+                // F'(x, w) = L'(f(x,w)) * f'(x,w)
+                //
+                // To compute index, i, of the F', we calculate the
+                // derivative with respect to w[i].
+                //
+                // Note that
+                //
+                // f(x,w) = x[0]*w[0] + x[1]*w[1] + ... + x[n]*w[n]
+                //
+                // So the derivative wrt w[i] is 
+                //
+                // df(x,w)/dw[i] = x[i]
+                //
+                // L'(x) = activator_derivative(x) // look at the code, if you're curious.
+
+                // The inner loop is responsible for back-propagating
+                // the error.  Intuitively, we are assigning 'blame'
+                // for the error in this layer's output to the
+                // elements of the input tensor.
+                //
+                // The amount of blame we assign to each input for the
+                // error in a particular output is proportional to
+                // that input's weight for that output.  If the weight
+                // for an input is large, it had a large impact on the
+                // output, so it more responsible for the resulting
+                // error.
+
+                // The errors attributed to each input is the sum of
+                // the error it contributed across all the outputs.
+
+                grads_out.size.x = grads_out.size.x * grads_out.size.y * grads_out.size.z;
+                grads_out.size.y = 1;
+                grads_out.size.z = 1;
+
+                for ( int b = 0; b < out.size.b; b++ ) {
+                        for ( int n = 0; n < activator_input.size.x; n++ ){
+                                // In `activate()` we saved the value of
+                                // f(x,w) as `activator_input`, so we are
+                                // reusing it here to compute L'(f(x,w))
+                                double ad = activator_derivative( activator_input(n, 0, 0, b) );
+                                //std::cout << ad;
+                                double ng = grad_next_layer(n, 0, 0, b);
+                                //std::cout << ng;
+                                act_grad(n, 0, 0, b) = ad * ng;
+                        }
+                }
+
+                // We are calculating how much each input
+                // contributed to the error.  That
+                // contribution is proportional to the
+                // weights.
+
+                for ( int b = 0; b < out.size.b; b++ ) {
+                        for ( int i = 0; i < grads_out.size.x; i++ ) {
+                                for ( int n = 0; n < out.size.x; n++ ) {
+                                        grads_out(i, 0, 0, b) += act_grad(n, 0, 0, b) * weights( i, n, 0);
+                                }
+                        }
+                }
+
+                grads_out.size = in.size;
+        }
 			
 };
 
