@@ -336,9 +336,8 @@ public:
 
                 #define TILE_SIZE 8
 
-                for ( int b = 0; b < out.size.b; b++ ) {
-                        for ( int nn = 0; nn < weights.size.x; nn+=TILE_SIZE) {
-                        // for ( int b = 0; b < out.size.b; b++ ) {
+                for ( int nn = 0; nn < weights.size.x; nn+=TILE_SIZE) {
+                        for ( int b = 0; b < out.size.b; b++ ) {
                         //{ int b = 1;
                                 for ( int n = nn; n < nn + TILE_SIZE && n < weights.size.y; n++ ) {
                                         for ( int i = 0; i < weights.size.x; i++ ) {
